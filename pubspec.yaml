@@ -1,0 +1,19 @@
+name: dart_mixpanel
+description: Implementation of the mixpanel client library for flutter
+author: Forever Day One
+homepage: foreverday.one
+
+version: 0.0.1
+
+dependencies:
+    flutter:
+        sdk: flutter
+    uuid:
+    shared_preferences:
+    package_info:
+    device_info:
+    http:
+
+environment:
+  sdk: ">=2.0.0 <3.0.0"
+
