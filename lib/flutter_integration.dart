@@ -126,7 +126,7 @@ class MixpanelAnalytics with WidgetsBindingObserver {
       startTimer(name);
       await timedAction();
     } finally {
-      client.track(name, properties: properties, context: context);
+      track(name, properties: properties, context: context);
     }
   }
 }
