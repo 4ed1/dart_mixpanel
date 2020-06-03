@@ -14,9 +14,13 @@ import 'package:uuid/uuid.dart';
 ///
 /// For advanced usage, don't be afraid to access the [client] object directly.
 class MixpanelAnalytics with WidgetsBindingObserver {
-  /// If you're using a [AnalyticsProvider], this allows you to call MixpanelAnalytics.of(context).track(...).
-  static MixpanelAnalytics of(BuildContext context) =>
-      (context.ancestorWidgetOfExactType(MixpanelAnalyticsProvider) as MixpanelAnalyticsProvider).analytics;
+  /// If you're using a [MixpanelAnalyticsProvider], this allows you to call MixpanelAnalytics.of(context).track(...).
+  static MixpanelAnalytics of(BuildContext context) {
+    final MixpanelAnalyticsProvider provider =
+        context.findAncestorWidgetOfExactType();
+
+    return provider.analytics;
+  }
 
   MixpanelAnalyticsClient _client;
   MixpanelAnalyticsClient get client => _client;
@@ -24,7 +28,7 @@ class MixpanelAnalytics with WidgetsBindingObserver {
   bool get enabled => _client.enabled;
 
   /// List of events that set to be sent to Mixpanel. Only populated if debugRecord is true
-  List<Map<String,dynamic>> get debugList => _client.debugList;
+  List<Map<String, dynamic>> get debugList => _client.debugList;
   set enabled(bool val) => _client.enabled = val;
 
   /// Provide a name for your environment
@@ -54,7 +58,12 @@ class MixpanelAnalytics with WidgetsBindingObserver {
     bool enabled = true,
     MixpanelErrorTrackHandler trackErrorHandler,
     this.environmentName = 'debug',
-  }) : _client = MixpanelAnalyticsClient(token: token, debugRecord: debugRecord, debugPrint: debugPrint, debugErrors: debugErrors, errorTrackHandler: trackErrorHandler) {
+  }) : _client = MixpanelAnalyticsClient(
+            token: token,
+            debugRecord: debugRecord,
+            debugPrint: debugPrint,
+            debugErrors: debugErrors,
+            errorTrackHandler: trackErrorHandler) {
     WidgetsFlutterBinding.ensureInitialized().addObserver(this);
   }
 
@@ -97,15 +106,19 @@ class MixpanelAnalytics with WidgetsBindingObserver {
   /// those past events with the new account.
   Future<void> setAnonymousUser() => _client.identify(Uuid().v4());
 
-  Future<void> setUser(String id, {Map<String, dynamic> properties = const {}, bool autoAlias = true}) async {
+  Future<void> setUser(String id,
+      {Map<String, dynamic> properties = const {},
+      bool autoAlias = true}) async {
     await client.identify(id, autoAlias: autoAlias);
     await client.people('\$set', properties);
   }
 
   /// Track the given event. If [context] is not null, try getting the route's name on which this event occurred
   /// and report it in a screen_name field in  properties.
-  Future<void> track(String name, {Map<String, dynamic> properties = const {}, BuildContext context}) {
-    final screenName = context != null ? ModalRoute.of(context)?.settings?.name : null;
+  Future<void> track(String name,
+      {Map<String, dynamic> properties = const {}, BuildContext context}) {
+    final screenName =
+        context != null ? ModalRoute.of(context)?.settings?.name : null;
     if (screenName != null)
       properties = {'screen_name': screenName}..addAll(properties);
     return client.track(name, properties: properties);
@@ -113,7 +126,7 @@ class MixpanelAnalytics with WidgetsBindingObserver {
 
   /// Change a people property
   Future<void> people(String operation, Map<String, dynamic> properties) =>
-    people(operation, properties);
+      client.people(operation, properties);
 
   /// Start timer for the event [name]. Finish the timer by calling [track] with the same [name].
   ///
@@ -121,7 +134,9 @@ class MixpanelAnalytics with WidgetsBindingObserver {
   void startTimer(String name) => client.timeEvent(name);
 
   /// Begin a timer for the action [name] and report when it finished with the duration it took.
-  Future<void> trackTimedAction(String name, Future Function() timedAction, {Map<String, dynamic> properties = const {}, BuildContext context}) async {
+  Future<void> trackTimedAction(String name, Future Function() timedAction,
+      {Map<String, dynamic> properties = const {},
+      BuildContext context}) async {
     try {
       startTimer(name);
       await timedAction();
@@ -161,8 +176,7 @@ class MixpanelAnalyticsObserver extends RouteObserver<PageRoute<dynamic>> {
 
   void _track(RouteSettings settings) {
     final name = settings.name;
-    if (name != null)
-      analytics.client.trackScreenView(name);
+    if (name != null) analytics.client.trackScreenView(name);
   }
 }
 
@@ -170,7 +184,9 @@ class MixpanelAnalyticsObserver extends RouteObserver<PageRoute<dynamic>> {
 class MixpanelAnalyticsProvider extends InheritedWidget {
   final MixpanelAnalytics analytics;
 
-  const MixpanelAnalyticsProvider({@required this.analytics, @required Widget child}) : super(child: child);
+  const MixpanelAnalyticsProvider(
+      {@required this.analytics, @required Widget child})
+      : super(child: child);
 
   @override
   bool updateShouldNotify(InheritedWidget oldWidget) => false;
@@ -201,4 +217,3 @@ class MixpanelLocalStorage with MixpanelStorage {
   String get version => prefs.getString(versionKey);
   Future<bool> setVersion(String v) => prefs.setString(versionKey, v);
 }
-

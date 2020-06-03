@@ -4,7 +4,7 @@ homepage: https://foreverday.one
 repository: https://github.com/4ed1/dart_mixpanel
 issue_tracker: https://github.com/4ed1/dart_mixpanel/issues
 
-version: 0.0.3
+version: 0.0.4
 
 dependencies:
     flutter:
